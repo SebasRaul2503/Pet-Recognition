@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reconocimiento de Perros y Gatos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .upload-section, .predictions-section {
+            width: 45%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0;
+        }
+
+        form {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        label {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #imagePreview {
+            text-align: center;
+        }
+
+        #preview {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        #predictionsList {
+            list-style: none;
+            padding: 0;
+            margin-left: 20px;
+        }
+
+        #predictionsList li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="upload-section">
+            <h1>Reconocimiento de perros y gatos</h1>
+            <form method="post" enctype="multipart/form-data" id="uploadForm">
+                <input type="file" name="file" accept="image/*" id="fileInput">
+                <label for="fileInput">Selecciona una imagen</label><br><br>
+            </form>
+
+            <div id="imagePreview" style="display:none;">
+                <h2>Imagen Subida</h2>
+                <img id="preview" src="" alt="Imagen Subida">
+            </div>
+        </div>
+
+        <div class="predictions-section">
+            <h2>Predicciones:</h2>
+            <ul id="predictionsList"></ul>
+        </div>
+    </div>
+
+    <script>
+        // Function to display image preview
+        function previewImage(input) {
+            var preview = document.getElementById('preview');
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+            document.getElementById('imagePreview').style.display = 'block';
+        }
+
+        // Function to update prediction text
+        function updatePredictions(predictions) {
+            var predictionsList = document.getElementById('predictionsList');
+            predictionsList.innerHTML = ''; // Clear the predictions list before adding new ones
+            for (var model in predictions) {
+                if (predictions.hasOwnProperty(model)) {
+                    var listItem = document.createElement('li');
+                    listItem.textContent = model + ': ' + predictions[model];
+                    predictionsList.appendChild(listItem);
+                }
+            }
+            document.getElementsByClassName('predictions-section')[0].style.display = 'block';
+        }
+
+        // Event listener for file input change
+        document.getElementById('fileInput').addEventListener('change', function() {
+            previewImage(this);
+            var predictionsList = document.getElementById('predictionsList');
+            predictionsList.innerHTML = '<li>Cargando...</li>'; // Show "Cargando..." message
+            var formData = new FormData(document.getElementById('uploadForm'));
+            fetch('/', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(predictions => {
+                updatePredictions(predictions);
+            });
+        });
+    </script>
+</body>
+</html>
